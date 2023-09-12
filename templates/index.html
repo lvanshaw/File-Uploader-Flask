@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <title>File Uploader</title>
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+</head>
+
+<body>
+  <div class="container my-5">
+    <h1 class="mb-5">Upload Files</h1>
+    <form method="POST" action="{{ url_for('upload') }}" enctype="multipart/form-data">
+      <div class="form-group">
+        <label for="file-input">Choose File</label>
+        <input type="file" class="form-control-file" id="file-input" name="file" />
+      </div>
+      <div class="form-group">
+        <label for="description-input">Description</label>
+        <textarea class="form-control" id="description-input" rows="3" name="description"></textarea>
+      </div>
+      <div class="form-group">
+        <label for="type-input">Type</label>
+        <select class="form-control" id="type-input" name="type">
+          <option value="image">Image</option>
+          <option value="video">Video</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label for="priority-input">Priority</label>
+        <select class="form-control" id="priority-input" name="priority">
+          <option value="high">High</option>
+          <option value="medium">Medium</option>
+          <option value="low">Low</option>
+        </select>
+      </div>
+      <button type="submit" class="btn btn-primary">Upload</button>
+    </form>
+  </div>
+
+  <div class="container my-5">
+    <h1 class="mb-5">Upload Status</h1>
+    <table class="table">
+      <thead>
+        <tr>
+          <th scope="col">Filename</th>
+          <th scope="col">Type</th>
+          <th scope="col">Priority</th>
+          <th scope="col">Status</th>
+          <th scope="col">Actions</th>
+        </tr>
+      </thead>
+      <tbody id="table-body">
+      </tbody>
+    </table>
+  </div>
+
+  <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+  <script>
+    // add click listener to speed button
+    $("#table-body").on("click", ".speed-btn", function () {
+      var row = $(this).closest("tr");
+      var filename = row.find("td:first-child").text();
+      // send filename to server for processing
+      $.post("/tracker/process_speed", { "filename": filename }, function (data) {
+        alert("Speed processing started for " + filename);
+      });
+    });
+
+
+    // add click listener to delete button
+    $("#table-body").on("click", ".delete-btn", function () {
+      var row = $(this).closest("tr");
+      var filename = row.find("td:first-child").text();
+      // send filename to server for deletion
+      $.post("/tracker/delete", { "filename": filename }, function (data) {
+        row.remove();
+        alert("File deleted: " + filename);
+      });
+    });
+
+    // function to update upload status table
+    function updateStatusTable() {
+      // send GET request to server for upload status
+      $.get("/tracker/status", function (data) {
+        // clear table body
+        $("#table-body").empty();
+        // populate table body with upload status data
+        $.each(data, function (index, file) {
+          var row = "<tr>";
+          row += "<td>" + file.filename + "</td>";
+          row += "<td>" + file.type + "</td>";
+          row += "<td>" + file.priority + "</td>";
+          row += "<td>" + file.status + "</td>";
+          row += "<td>";
+          row += "<button type='button' class='btn btn-primary speed-btn'>Process Speed</button>";
+          row += "<button type='button' class='btn btn-danger delete-btn'>Delete</button>";
+          row += "</td>";
+          row += "</tr>";
+          $("#table-body").append(row);
+        });
+      });
+    }
+
+    // update table every 5 seconds
+    setInterval(updateStatusTable, 5000);
+  </script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.3/jquery.min.js"
+  integrity="sha512-STof4xm1wgkfm7heWqFJVn58Hm3EtS31XFaagaa8VMReCXAkQnJZ+jEy8PCC/iT18dFy95WcExNHFTqLyp72eQ=="
+  crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/2.11.6/umd/popper.min.js"
+  integrity="sha512-6UofPqm0QupIL0kzS/UIzekR73/luZdC6i/kXDbWnLOJoqwklBK6519iUnShaYceJ0y4FaiPtX/hRnV/X/xlUQ=="
+  crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.2.3/js/bootstrap.min.js"
+  integrity="sha512-1/RvZTcCDEUjY/CypiMz+iqqtaoQfAITmNSJY17Myp4Ms5mdxPS5UV7iOfdZoxcGhzFbOm6sntTKJppjvuhg4g=="
+  crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</body>
+
+</html>
